@@ -1,22 +1,6 @@
-// ============================================================
-// TP : Mini Jeu Pokémon CLI
-// Utilise l'API PokéAPI (https://pokeapi.co)
-// Concepts du cours : modules CommonJS, module https, npm,
-//                     inquirer (third party), async/await
-// ============================================================
-
 const https = require("node:https");      // Built-in module pour les appels HTTP
 const inquirer = require("inquirer");      // Third party module pour l'interactivité CLI
 
-// ============================================================
-// 1. Fonctions utilitaires pour appeler l'API PokéAPI
-// ============================================================
-
-/**
- * Fait un appel GET HTTPS et retourne le JSON parsé.
- * On utilise le module built-in "https" de Node.js (pas axios).
- * C'est une Promise qui encapsule le callback pattern vu en cours.
- */
 function fetchJSON(url) {
     return new Promise((resolve, reject) => {
         https.get(url, (res) => {
@@ -41,21 +25,11 @@ function fetchJSON(url) {
     });
 }
 
-/**
- * Récupère les données d'un Pokémon depuis l'API.
- * Endpoint : https://pokeapi.co/api/v2/pokemon/{name}
- * Retourne l'objet complet du Pokémon (nom, moves, sprites, etc.)
- */
 async function fetchPokemon(name) {
     const url = `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`;
     return await fetchJSON(url);
 }
 
-/**
- * Récupère les détails d'une attaque (move).
- * Endpoint : https://pokeapi.co/api/v2/move/{id}
- * Retourne : { name, power, accuracy, pp }
- */
 async function fetchMove(url) {
     const moveData = await fetchJSON(url);
     return {
@@ -66,19 +40,6 @@ async function fetchMove(url) {
     };
 }
 
-// ============================================================
-// 2. Préparation des Pokémon (joueur et bot)
-// ============================================================
-
-/**
- * Prépare un Pokémon pour le combat :
- * - Récupère ses données depuis l'API
- * - Filtre les moves qui ont une puissance (power != null) → moves offensifs uniquement
- * - Sélectionne aléatoirement 5 moves parmi les offensifs
- * - Récupère les détails de chaque move depuis l'API
- * 
- * Retourne un objet : { name, hp, moves: [{name, power, accuracy, pp, currentPp}, ...] }
- */
 async function preparePokemon(name) {
     console.log(`\nChargement de ${name}...`);
     
@@ -122,14 +83,6 @@ async function preparePokemon(name) {
     };
 }
 
-// ============================================================
-// 3. Affichage (helpers pour rendre le jeu joli en CLI)
-// ============================================================
-
-/**
- * Affiche une barre de vie en ASCII
- * Ex: [████████████████----] 240/300
- */
 function hpBar(currentHp, maxHp) {
     const total = 20;
     const filled = Math.max(0, Math.round((currentHp / maxHp) * total));
@@ -138,9 +91,6 @@ function hpBar(currentHp, maxHp) {
     return `[${bar}] ${Math.max(0, currentHp)}/${maxHp} HP`;
 }
 
-/**
- * Affiche l'état des deux combattants
- */
 function displayStatus(player, bot) {
     console.log("\n╔══════════════════════════════════════════╗");
     console.log(`║  JOUEUR  ${player.name.padEnd(15)} ${hpBar(player.hp, 300)} ║`);
@@ -148,14 +98,7 @@ function displayStatus(player, bot) {
     console.log("╚══════════════════════════════════════════╝");
 }
 
-// ============================================================
-// 4. Logique de combat
-// ============================================================
 
-/**
- * Le joueur choisit son attaque via inquirer (interactif).
- * Chaque choix affiche le nom, la puissance, la précision et les PP restants.
- */
 async function playerChooseMove(moves) {
     // Filtrer les moves qui ont encore des PP
     const available = moves.filter((m) => m.currentPp > 0);
@@ -180,10 +123,6 @@ async function playerChooseMove(moves) {
     return chosenMove;
 }
 
-/**
- * Le bot choisit une attaque aléatoirement parmi celles
- * qui ont encore des PP restants (comme le TP le demande).
- */
 function botChooseMove(moves) {
     const available = moves.filter((m) => m.currentPp > 0);
     if (available.length === 0) return null;
@@ -192,22 +131,7 @@ function botChooseMove(moves) {
     return available[randomIndex];
 }
 
-/**
- * Exécute une attaque d'un attaquant vers un défenseur.
- * 
- * Logique :
- * 1. Diminuer les PP de l'attaque (currentPp--)
- * 2. Vérifier la règle du PP : si les PP de l'attaque du joueur < PP de l'attaque ennemie,
- *    l'attaque ne passe pas (slide 54 du PDF)
- * 3. Vérifier l'accuracy : nombre aléatoire entre 0-100, si < accuracy → touche
- * 4. Appliquer les dégâts (power) au défenseur
- * 
- * @param {object} attacker - L'attaquant (joueur ou bot)
- * @param {object} attackerMove - L'attaque choisie
- * @param {object} defender - Le défenseur
- * @param {object} enemyMove - L'attaque de l'ennemi (pour la règle du PP)
- * @param {string} label - "JOUEUR" ou "BOT"
- */
+
 function executeAttack(attacker, attackerMove, defender, enemyMove, label) {
     console.log(`\n${label} utilise ${attackerMove.name.toUpperCase()} !`);
 
@@ -235,18 +159,7 @@ function executeAttack(attacker, attackerMove, defender, enemyMove, label) {
     console.log(`   Touche ! ${attackerMove.power} degats infliges a ${defender.name} !`);
 }
 
-// ============================================================
-// 5. Boucle de jeu principale
-// ============================================================
 
-/**
- * Fonction principale du jeu. Enchaîne :
- * 1. Demander au joueur de choisir son Pokémon
- * 2. Le bot choisit un Pokémon aléatoire
- * 3. Charger les données et moves depuis l'API
- * 4. Boucle de combat tour par tour
- * 5. Afficher le vainqueur
- */
 async function main() {
     console.log("╔══════════════════════════════════════════╗");
     console.log("║        POKEMON BATTLE SIMULATOR          ║");
