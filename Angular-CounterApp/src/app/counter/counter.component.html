@@ -1,0 +1,11 @@
+<div style="text-align: center; border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 300px; margin: 20px auto;">
+  <!-- On appelle number() pour afficher la valeur du signal -->
+  <h2>Compteur : {{ number() }}</h2>
+
+  <div>
+    <!-- On relie les boutons aux fonctions -->
+    <button (click)="increment()" style="margin: 5px; padding: 8px;">Increment</button>
+    <button (click)="decrement()" style="margin: 5px; padding: 8px;">Decrement</button>
+    <button (click)="reset()" style="margin: 5px; padding: 8px;">Reset</button>
+  </div>
+</div>
