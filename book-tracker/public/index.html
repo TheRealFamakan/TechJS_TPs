@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajouter un livre</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-fixed" style="background-image: url('bg.png');">
+  <div class="bg-white/80 backdrop-blur-md p-8 md:p-10 rounded-3xl shadow-xl w-full max-w-lg border border-white">
+    <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 text-center mb-8">
+      Ajouter un livre
+    </h1>
+
+    <div class="space-y-4">
+      <input id="title" type="text" placeholder="Titre du livre" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none"/>
+      <input id="author" type="text" placeholder="Auteur" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none"/>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <input id="pages" type="number" placeholder="Pages totales" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none"/>
+        <input id="pagesRead" type="number" placeholder="Pages lues" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none"/>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <input id="price" type="number" placeholder="Prix (€)" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none"/>
+        <input id="suggestedBy" type="text" placeholder="Suggéré par" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none"/>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 pb-2">
+        <select id="status" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none text-gray-700">
+          <option value="Read">Lu</option>
+          <option value="Re-read">Relu</option>
+          <option value="DNF">Abandonné</option>
+          <option value="Currently reading">En cours</option>
+          <option selected value="Want to read">À lire</option>
+        </select>
+
+        <select id="format" class="w-full border-0 bg-white ring-1 ring-gray-200 focus:ring-2 focus:ring-emerald-400 rounded-xl p-3 shadow-sm transition outline-none text-gray-700">
+          <option value="Print">Papier</option>
+          <option value="PDF">PDF</option>
+          <option value="Ebook">Ebook</option>
+          <option value="AudioBook">Livre Audio</option>
+        </select>
+      </div>
+
+      <button onclick="addBook()"
+        class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-semibold text-lg">
+        + Ajouter à mon Tracker
+      </button>
+
+      <a href="/tracker.html"
+        class="block text-center text-teal-600 font-medium hover:text-teal-700 hover:underline mt-4 transition">
+        Voir mon tableau de suivi 
+      </a>
+    </div>
+  </div>
+
+  <script>
+    async function addBook() {
+      const book = {
+        title:       document.getElementById("title").value,
+        author:      document.getElementById("author").value,
+        pages:       parseInt(document.getElementById("pages").value),
+        pagesRead:   parseInt(document.getElementById("pagesRead").value),
+        price:       parseFloat(document.getElementById("price").value),
+        suggestedBy: document.getElementById("suggestedBy").value,
+        status:      document.getElementById("status").value,
+        format:      document.getElementById("format").value,
+      };
+
+      const res = await fetch("/books", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book),
+      });
+
+      if (res.ok) {
+        alert("Livre ajouté !");
+      }
+    }
+  </script>
+</body>
+</html>

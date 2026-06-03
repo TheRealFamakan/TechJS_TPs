@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen p-6 md:p-10 bg-cover bg-center bg-fixed" style="background-image: url('bg.png');">
+  <div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between mb-10">
+      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
+        Mon Book Tracker
+      </h1>
+      <a href="/" class="px-5 py-2 bg-white text-teal-600 font-semibold rounded-full shadow-sm hover:shadow-md hover:bg-teal-50 transition border border-teal-100">
+        + Nouveau livre
+      </a>
+    </div>
+
+    <!-- Stats globales -->
+    <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg p-6 mb-10 flex gap-12 border border-white">
+      <div>
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Livres terminés</p>
+        <p id="totalFinished" class="text-4xl font-black text-emerald-500">-</p>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Total pages lues</p>
+        <p id="totalPages" class="text-4xl font-black text-teal-500">-</p>
+      </div>
+    </div>
+
+    <!-- Liste des livres -->
+    <div id="bookList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </div>
+
+  <script>
+    async function loadBooks() {
+      const res = await fetch("/books");
+      const books = await res.json();
+
+      // Stats globales
+      const finished = books.filter(b => b.finished).length;
+      const totalPages = books.reduce((sum, b) => sum + b.pagesRead, 0);
+      document.getElementById("totalFinished").textContent = finished;
+      document.getElementById("totalPages").textContent = totalPages;
+
+      // Liste
+      const container = document.getElementById("bookList");
+      container.innerHTML = "";
+
+      books.forEach(book => {
+        const percent = book.pages > 0
+          ? Math.round((book.pagesRead / book.pages) * 100)
+          : 0;
+
+        container.innerHTML += `
+          <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 p-6 border border-gray-100 group relative">
+            <div class="absolute top-4 right-4 bg-gray-50 text-gray-400 px-3 py-1 rounded-full text-xs font-semibold">
+              ${book.format}
+            </div>
+            
+            <h2 class="text-xl font-bold text-gray-800 pr-16 leading-tight">${book.title}</h2>
+            <p class="text-emerald-600 font-medium mb-4">${book.author}</p>
+            
+            <div class="space-y-1 mb-6">
+              <p class="text-sm text-gray-600"><span class="text-gray-400">Status:</span> <span class="font-medium text-gray-700">${book.status}</span></p>
+              ${book.suggestedBy ? `<p class="text-sm text-gray-600"><span class="text-gray-400">Recommandé par:</span> ${book.suggestedBy}</p>` : ''}
+            </div>
+            
+            <div class="mt-auto">
+              <div class="flex flex-col mb-3">
+                <div class="flex justify-between text-xs font-semibold text-gray-500 mb-2">
+                  <span class="flex items-center gap-2">
+                    <input type="number" id="pages-${book._id}" value="${book.pagesRead}" 
+                           class="w-16 border border-gray-200 rounded px-1 py-1 text-center bg-white shadow-inner focus:outline-none focus:ring-1 focus:ring-teal-400"
+                           min="0" max="${book.pages}">
+                    / ${book.pages} p.
+                  </span>
+                  <span class="text-teal-600 self-end">${percent}%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-2.5 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-4 flex items-center justify-between">
+              ${book.finished 
+                ? '<span class="inline-flex items-center gap-1 text-sm font-bold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full">✔ Lu</span>' 
+                : `<div class="flex gap-2">
+                     <button onclick="updatePages('${book._id}', ${book.pages})" class="text-xs bg-teal-500 text-white font-medium px-3 py-1.5 rounded hover:bg-teal-600 transition shadow-sm">Maj</button>
+                     <button onclick="markAsFinished('${book._id}', ${book.pages})" class="text-xs bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded hover:bg-emerald-200 transition shadow-sm">J'ai fini !</button>
+                   </div>`}
+              <button onclick="deleteBook('${book._id}')"
+                class="text-red-400 hover:text-red-600 text-sm font-medium transition opacity-0 group-hover:opacity-100">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function deleteBook(id) {
+      await fetch("/books/" + id, { method: "DELETE" });
+      loadBooks();
+    }
+
+    async function updatePages(id, totalPages) {
+      const input = document.getElementById(`pages-${id}`);
+      let read = parseInt(input.value) || 0;
+      if (read > totalPages) read = totalPages;
+      if (read < 0) read = 0;
+      
+      const finished = (read === totalPages);
+      const status = finished ? "Read" : "Currently reading";
+
+      await fetch(`/books/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pagesRead: read, finished, status })
+      });
+      loadBooks();
+    }
+
+    async function markAsFinished(id, totalPages) {
+      await fetch(`/books/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pagesRead: totalPages, finished: true, status: "Read" })
+      });
+      loadBooks();
+    }
+
+    loadBooks();
+  </script>
+</body>
+</html>
