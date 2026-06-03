@@ -8,19 +8,19 @@ J'aborde ce module avec l'envie de vraiment comprendre JavaScript de l'intérieu
 
 Ce que j'explore jusqu'ici :
 * Les bases solides du langage (variables, types, fonctions, boucles, conditions)
-* La manipulation du DOM et l'interaction avec les pages web
+* L'interaction avec les pages web
 * La gestion des événements utilisateur
 * L'asynchrone avec les Promises et Async/Await
 
 Et dans la suite du module :
-* React — construction d'interfaces dynamiques par composants
+* Angular — construction d'interfaces dynamiques par composants
 * Node.js — JavaScript côté serveur
 * Et bien d'autres technologies de l'écosystème JS...
 
 ## Stack technique
 * JavaScript
 * HTML / CSS
-* React 
+* Angular 
 * Node.js
 * ...
 
