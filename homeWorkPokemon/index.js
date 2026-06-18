@@ -1,4 +1,4 @@
-const https = require("node:https");      // Built-in module pour les appels HTTP
+const https = require("node:https");      // Built-in module pour les appels ou requests HTTP
 const inquirer = require("inquirer");      // Third party module pour l'interactivité CLI
 
 function fetchJSON(url) {
